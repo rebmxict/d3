@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>JS Bin</title>
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis.y line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+    opacity: 0.3;
+}
+
+.axis path {
+    display: none;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.mbar {
+    fill: red;
+}
+
+.pbar {
+    fill: green;
+}
+
+.bar:hover {
+    opacity: 0.8;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.d3-tip {
+    line-height: 1;
+    font-weight: bold;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+.line {
+    fill: none;
+    stroke: #444;
+    stroke-width: 1.5px;
+}
+
+
+</style>
+</head>
+<body>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+
+// input data
+var data = [
+    {"letter": "Start",             "higher": .5,       "lower": .0},
+    {"letter": "Start + upgrades",  "higher": -.15,     "lower": .0},
+    {"letter": "Start + new",       "higher": .44,      "lower": .0},
+    {"letter": "Total",             "higher": .6,       "lower": .0}
+];
+
+data[1]["lower"]    = data[0]["higher"] - Math.abs(data[1]["higher"] - data[1]["lower"]);
+data[1]["higher"]   = data[0]["higher"];
+data[2]["higher"]   = data[0]["higher"] + Math.abs(data[2]["higher"] - data[2]["lower"]);
+data[2]["lower"]    = data[0]["higher"];
+data[3]["higher"]   = data[0]["higher"] + data[2]["higher"] + data[1]["lower"] - data[0]["higher"] * 2;
+
+for( var i = 0; i < 4; i ++ ) {
+    data[i]["higher"] = Math.round((data[i]["higher"]) * 100) / 100
+}
+
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var formatPercent = d3.format(".0%");
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+
+var x2 = d3.scale.ordinal()
+    .rangeBands([0, width], 0);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .tickFormat(formatPercent);
+
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return "<strong>Percentage:</strong> <span style='color:red'>" + d.higher * 100 + "%</span>";
+    })
+
+var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+svg.call(tip);
+
+data.forEach(function(d) {
+    d.higher = +d.higher;
+    d.lower = +d.lower;
+});
+
+// x, y axis length
+x.domain(data.map(function(d) { return d.letter; }));
+x2.domain(data.map(function(d) { return d.letter; }));
+y.domain([0, data[0]["higher"] * 2]);
+
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+    .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end");
+//   .text("Frequency");
+
+var obj = document.getElementsByClassName("y")[0].getElementsByClassName("tick");
+for (var i = 0; i < obj.length; i++) {
+    obj[i].getElementsByTagName("line")[0].setAttribute("x2", width);
+}
+
+// style class to paint each bar
+data[0].class = data[3].class = "bar";
+data[1].class = "mbar";
+data[2].class = "pbar";
+
+svg.selectAll(".bar")
+        .data(data)
+    .enter().append("rect")
+        .attr("class", function(d) { return d.class }) // style class set
+        .attr("x", function(d) { return x(d.letter) + x.rangeBand()/4; })
+        .attr("width", x.rangeBand()/2)
+        .attr("y", function(d) { return y(d.higher); })
+        .attr("height", function(d) { return height - y(d.higher-d.lower); })
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide);
+
+var dataSum = d3.mean(data, function(d) { return (d.higher + d.lower); });
+
+var line = d3.svg.line()
+                .x(function(d, i) {
+                  return x(d.letter) + i; })
+                .y(function(d, i) { return y(dataSum/data.length); });
+
+// add rule line
+svg.append("g").append("line")
+                .attr("x1", 0)
+                .attr("x2", width)
+                .attr("y1", y(0))
+                .attr("y2", y(0))
+                .style("opacity", 0.5)
+                .style("stroke-dasharray", 0)
+                .style("stroke-width", "3px")
+                .style("stroke", "#000");
+
+// add rule line
+svg.append("g").append("line")
+                .attr("x1", 0)
+                .attr("x2", width)
+                .attr("y1", y(data[0]["higher"]))
+                .attr("y2", y(data[0]["higher"]))
+                .style("opacity", 0.5)
+                .style("stroke-dasharray", 0)
+                .style("stroke-width", "3px")
+                .style("stroke", "#000");
+
+</script>
+</body>
+</html>
