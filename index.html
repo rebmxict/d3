@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset=utf-8 />
-<title>JS Bin</title>
+<title>D3 Bar chart</title>
 <style>
 
 body {
@@ -88,19 +88,32 @@ body {
 // input data
 var data = [
     {"letter": "Start",             "higher": .5,       "lower": .0},
-    {"letter": "Start + upgrades",  "higher": -.15,     "lower": .0},
-    {"letter": "Start + new",       "higher": .44,      "lower": .0},
-    {"letter": "Total",             "higher": .6,       "lower": .0}
+    {"letter": "Start + upgrades",  "higher": .15,     "lower": .0},
+    {"letter": "Start + new",       "higher": -.44,      "lower": .0},
+    {"letter": "Total",             "higher": .0,       "lower": .0}
 ];
 
-data[1]["lower"]    = data[0]["higher"] - Math.abs(data[1]["higher"] - data[1]["lower"]);
-data[1]["higher"]   = data[0]["higher"];
-data[2]["higher"]   = data[0]["higher"] + Math.abs(data[2]["higher"] - data[2]["lower"]);
-data[2]["lower"]    = data[0]["higher"];
-data[3]["higher"]   = data[0]["higher"] + data[2]["higher"] + data[1]["lower"] - data[0]["higher"] * 2;
+data[3]["higher"]   = data[0]["higher"] + data[1]["higher"] + data[2]["higher"];
+if (data[1]["higher"] > 0) {
+    data[1]["lower"]    = data[0]["higher"];
+    data[1]["higher"]   = data[0]["higher"] + data[1]["higher"];
+} else {
+    data[1]["lower"]    = data[0]["higher"] + data[1]["higher"];
+    data[1]["higher"]   = data[0]["higher"];
+}
+if (data[2]["higher"] > 0) {
+    data[2]["lower"]    = data[0]["higher"];
+    data[2]["higher"]   = data[0]["higher"] + data[2]["higher"];
+} else {
+    data[2]["lower"]    = data[0]["higher"] + data[2]["higher"]; 
+    data[2]["higher"]   = data[0]["higher"];
+}
+
+var maxv = Math.max.apply(Math, data.map(function(o){return o.higher;}));
+maxv = Math.round((maxv) * 100) / 100;
 
 for( var i = 0; i < 4; i ++ ) {
-    data[i]["higher"] = Math.round((data[i]["higher"]) * 100) / 100
+    data[i]["higher"] = parseFloat(Math.round(data[i]["higher"] * 100) / 100).toFixed(2);
 }
 
 var margin = {top: 20, right: 20, bottom: 30, left: 40},
@@ -132,7 +145,7 @@ var tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset([-10, 0])
     .html(function(d) {
-        return "<strong>Percentage:</strong> <span style='color:red'>" + d.higher * 100 + "%</span>";
+        return "<strong>Percentage:</strong> <span style='color:red'>" + parseInt(d.higher * 100) + "%</span>";
     })
 
 var svg = d3.select("body").append("svg")
@@ -151,7 +164,7 @@ data.forEach(function(d) {
 // x, y axis length
 x.domain(data.map(function(d) { return d.letter; }));
 x2.domain(data.map(function(d) { return d.letter; }));
-y.domain([0, data[0]["higher"] * 2]);
+y.domain([0, maxv + .5]);
 
 svg.append("g")
     .attr("class", "x axis")
