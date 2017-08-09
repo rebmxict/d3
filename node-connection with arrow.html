@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<style>
+    .arrow{
+		stroke-width:5;
+		stroke:#000;
+		stroke-dasharray:5, 5;
+	}
+</style>
+
+<svg width='960' height='600'>
+</svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+<script>
+  var svg = d3.select('svg'),
+    width = +svg.attr('width'),
+    height = +svg.attr('height'),
+    color = d3.scaleOrdinal(d3.schemeCategory20),
+    numOfNodes = 25,
+    numOfRelations = 15;
+
+  var nodesArray = d3.range(numOfNodes).map(function(range, i) {
+    return {
+      id: range,
+      name: 'Node #' + range,
+      x: Math.random() * width,
+      y: Math.random() * height,
+      radius: 40,
+      color: color(range)
+    }
+  });
+
+  var relationsArray = d3.range(numOfRelations).map(function(range, i) {
+    var source = Math.floor(Math.random() * (nodesArray.length)) + 1;
+    var target = Math.floor(Math.random() * (nodesArray.length)) + 1;
+    if (source > 24) {
+        source = 24;
+    }
+    if (target > 24) {
+        target = 24;
+    }
+
+    return {
+      id: range,
+      name: 'Relation from ' + source + ' to ' + target,
+      sourceNodeId: source,
+      targetNodeId: target,
+    }
+  });
+
+  var dragFn = d3.drag()
+    .on('drag', onDrag)
+    .on('start', onDragStart)
+    .on('end', onDragEnd);
+
+  function draw(data) {
+    var nodes = svg.selectAll('.node-group').data(data, function(d) { return d.id });
+
+    console.log(nodes);
+    // Update node object
+    nodes
+      .select('.node')
+      .attr('cx', function(d) { return d.x})
+      .attr('cy', function(d) { return d.y});
+
+    // Update node text
+    nodes
+      .select('.node-text')
+      .attr('x', function(d) { return d.x})
+      .attr('y', function(d) { return d.y + d.radius});
+
+    // Enter
+    var nodeGroup = nodes
+      .enter()
+      .append('g')
+      .attr('class', 'node-group')
+      .attr('id', function(d) { return 'node-group-' + d.id});
+
+    var nodeObject = nodeGroup
+      .append('circle')
+      .attr('class', 'node')
+      .attr('r', function(d) { return d.radius / 2})
+      .attr('cx', function(d) { return d.x})
+      .attr('cy', function(d) { return d.y})
+      .style('fill', function(d) { return color(d.id); })
+      .call(dragFn);
+
+    var nodeText = nodeGroup
+      .append('text')
+      .attr('class', 'node-text')
+      .attr('x', function(d) { return d.x})
+      .attr('y', function(d) { return d.y + d.radius})
+      .attr('text-anchor', 'middle')
+      .text(function(d) { return d.name});
+  }
+
+  function onDrag(d) {
+    var ev = d3.event;
+
+    nodesArray = _.reduce(nodesArray, function(tmp, node) {
+      if (node.id === d.id) {
+        tmp.push(Object.assign({}, node, {
+          x: node.x + ev.dx,
+          y: node.y + ev.dy
+        }))
+      } else {
+        tmp.push(node);
+      }
+
+      return tmp;
+    }, []);
+
+    draw(nodesArray);
+    drawline(relationsArray);
+  }
+
+  function onDragStart() {
+    d3.select(this)
+      .classed('dragged', true)
+      .transition()
+      .ease(d3.easeExp)
+      .duration(250)
+      .attr('r', function(d) {
+        return d.radius * 0.6;
+      })
+  }
+
+  function onDragEnd() {
+    d3.select(this)
+      .classed('dragged', false)
+      .transition()
+      .ease(d3.easeExp)
+      .duration(250)
+      .attr('r', function(d) {
+        return d.radius * 0.5;
+      })
+  }
+
+  function drawline(data) {
+    var markers = svg.append('defs').attr('class', 'marker-container').selectAll('.line-group').data(data, function(d) { return d.id;});
+
+    var markerGroup = markers.enter().append('marker')
+        .attr('id', function(d){ return 'marker_' + 'arrow'})
+        .attr('markerHeight', 5)
+        .attr('markerWidth', 5)
+        .attr('markerUnits', 'strokeWidth')
+        .attr('orient', 'auto')
+        .attr('refX', 0)
+        .attr('refY', 0)
+        .attr('viewBox', '-5 -5 10 10')
+        .append('path')
+            .attr('d', function(d){ return 'M 0,0 m -5,-5 L 5,0 L -5,5 Z' })
+            .attr('fill', "black");
+
+    var nodes = svg.append('g').attr('class', 'path-container').selectAll('.line-group').data(data, function(d) { return d.id;});
+
+    nodes.select('.path');
+    nodes.select('.path-text');
+
+    var nodeGroup = nodes.enter().append('path')
+        .attr('d', function(d){ return 'M ' + nodesArray[d.sourceNodeId]["x"] + ',' + nodesArray[d.sourceNodeId]["y"] + ' L ' + nodesArray[d.targetNodeId]["x"] + ',' + nodesArray[d.targetNodeId]["y"] + '' })
+        // .attr("x1", function(d) { return nodesArray[d.sourceNodeId]["x"]; })
+        // .attr("y1", function(d) { return nodesArray[d.sourceNodeId]["y"]; })
+        // .attr("x2", function(d) { return nodesArray[d.targetNodeId]["x"]; })
+        // .attr("y2", function(d) { return nodesArray[d.targetNodeId]["y"]; })
+        .attr("stroke-width", 2)
+        .attr("stroke", "black")
+        .attr("marker-end", 'url(#marker_' + 'arrow)')
+        .attr("transform", null)
+        .attr('class', 'path');
+
+    var nodeText = nodes.enter().append('text')
+        .attr('class', 'path-text')
+        .attr('x', function(d) { return (nodesArray[d.sourceNodeId]["x"] + nodesArray[d.targetNodeId]["x"])/2; })
+        .attr('y', function(d) { return (nodesArray[d.sourceNodeId]["y"] + nodesArray[d.targetNodeId]["y"])/2; })
+        .attr('text-anchor', 'middle')
+        .text(function(d) { return d.name});
+
+    for (var i = 0; i < document.getElementsByClassName("path-container").length - 1; i ++) {
+        var elem = document.getElementsByClassName("path-container")[i];
+        elem.parentNode.removeChild(elem);
+    }
+  }
+
+  draw(nodesArray);
+  drawline(relationsArray);
+</script>
