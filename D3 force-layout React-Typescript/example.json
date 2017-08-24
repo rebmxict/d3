@@ -1,0 +1,56 @@
+{
+  "type": null,
+  "collectionId": 49,
+  "uuid": "2360b486-e6ed-4de7-b057-9accd95fa78a",
+  "name": "New Node",
+  "info": null,
+  "id": 505,
+  "createdAt": "2017-08-13T08:27:02.000Z",
+  "updatedAt": "2017-08-13T08:27:02.000Z",
+  "nodeData": {},
+  "createdByUserUuid": "98f00b99-0135-40d2-aa2a-9c8c13116521",
+  "createdByUsername": "Robby",
+  "domainUuid": null,
+  "visualisationData": {
+    "x": 1225,
+    "y": 341
+  },
+  "children": [
+    {
+      "type": null,
+      "collectionId": 49,
+      "uuid": "18acfca0-dcaf-4648-8c51-f4fbe776fed5",
+      "name": "New Node",
+      "info": null,
+      "id": 506,
+      "createdAt": "2017-08-13T08:27:04.000Z",
+      "updatedAt": "2017-08-13T08:27:04.000Z",
+      "nodeData": {},
+      "createdByUserUuid": "98f00b99-0135-40d2-aa2a-9c8c13116521",
+      "createdByUsername": "Robby",
+      "domainUuid": null,
+      "visualisationData": {
+        "x": 993,
+        "y": 354
+      }
+    },
+    {
+      "type": null,
+      "collectionId": 49,
+      "uuid": "c6d8a10c-b24a-462b-8ee9-08a1e37398d8",
+      "name": "New Node",
+      "info": null,
+      "id": 507,
+      "createdAt": "2017-08-13T08:28:25.000Z",
+      "updatedAt": "2017-08-13T08:28:25.000Z",
+      "nodeData": {},
+      "createdByUserUuid": "98f00b99-0135-40d2-aa2a-9c8c13116521",
+      "createdByUsername": "Robby",
+      "domainUuid": null,
+      "visualisationData": {
+        "x": 644,
+        "y": 198
+      }
+    }
+  ]
+}

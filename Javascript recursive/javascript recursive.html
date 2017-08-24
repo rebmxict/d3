@@ -1,0 +1,70 @@
+<html>
+
+<head>
+    <script>
+        var arr = [{
+            name: "535",
+            title: 'hello',
+            title1: 'hello',
+            parent: "536"
+        }, {
+            name: "541",
+            title: '123rwe',
+            title1: 'hello',
+            parent: "540"
+        }, {
+            name: "542",
+            title: 'sd2342',
+            parent: "540"
+        }, {
+            name: "543",
+            title: 'cvbcwef',
+            parent: "539"
+        }, {
+            name: "539",
+            title: '324rsd',
+            parent: "536"
+        }, {
+            name: "538",
+            title: 'neth34',
+            parent: "535"
+        }, {
+            name: "537",
+            title: '23wdfs',
+            parent: "535"
+        }, {
+            name: "540",
+            title: 'hedsgsdgllo',
+            parent: "538"
+        }, {
+            name: "544",
+            title: 'hesdfsdllo',
+            parent: "541"
+        }]
+
+        var res = getNestedChildren(arr, "536");
+        var result = {"name":"536","children":[]};
+        result["children"] = res;
+        console.log(JSON.stringify(result,null,2));
+
+        function getNestedChildren(arr, parent) {
+            var out = []
+            for (var i in arr) {
+                if (arr[i].parent == parent) {
+                    var children = getNestedChildren(arr, arr[i].name)
+
+                    if (children.length) {
+                        arr[i].children = children
+                    }
+                    out.push(arr[i])
+                }
+            }
+            return out
+        }
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>
