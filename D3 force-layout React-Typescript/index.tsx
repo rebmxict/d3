@@ -12,8 +12,6 @@ const dispatchToProps = (dispatch: any) => bindActionCreators({
 
 }, dispatch)
 
-
-
 // Wrap
 const ExplorerViewContainer = connect(stateToProps, dispatchToProps)(ExplorerView);
 
